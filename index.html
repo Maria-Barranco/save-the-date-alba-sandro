@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Alba y Sandro · Save the date</title>
+
 <style>
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   min-height: 100svh;
@@ -15,7 +19,11 @@ body {
   color: #575b3c;
   font-family: Georgia, serif;
 }
-main { width: min(100vw, calc(56.25svh - 30px)); }
+
+main {
+  width: min(100vw, calc(56.25svh - 30px));
+}
+
 .escena {
   position: relative;
   aspect-ratio: 9 / 16;
@@ -24,15 +32,29 @@ main { width: min(100vw, calc(56.25svh - 30px)); }
   perspective: 1600px;
   isolation: isolate;
 }
-canvas, .pieza {
+
+canvas,
+.pieza {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
-.pieza { object-fit: contain; }
-#inferior { z-index: 2; transform-origin: center bottom; }
-#superior { z-index: 3; transform-origin: center top; }
+
+.pieza {
+  object-fit: contain;
+}
+
+#inferior {
+  z-index: 2;
+  transform-origin: center bottom;
+}
+
+#superior {
+  z-index: 3;
+  transform-origin: center top;
+}
+
 #abrir {
   position: absolute;
   inset: 0;
@@ -42,16 +64,19 @@ canvas, .pieza {
   background: transparent;
   cursor: pointer;
 }
+
 #abrir:focus-visible {
   outline: 3px solid #80632a;
   outline-offset: -5px;
 }
+
 .controles {
   min-height: 48px;
   padding: 8px;
   text-align: center;
   font-size: 14px;
 }
+
 #repetir {
   font: inherit;
   color: inherit;
@@ -61,38 +86,85 @@ canvas, .pieza {
   background: transparent;
   cursor: pointer;
 }
-[hidden] { display: none !important; }
+
+[hidden] {
+  display: none !important;
+}
+
 .animando #superior {
   animation: arriba 2.1s ease-in-out forwards;
 }
+
 .animando #inferior {
   animation: abajo 1.8s 1.2s ease-in-out forwards;
 }
+
 @keyframes arriba {
-  0% { transform: rotateX(0); opacity: 1; }
-  85% { opacity: 1; }
-  100% { transform: rotateX(100deg); opacity: 0; }
+  0% {
+    transform: rotateX(0);
+    opacity: 1;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotateX(100deg);
+    opacity: 0;
+  }
 }
+
 @keyframes abajo {
-  0% { transform: rotateX(0); opacity: 1; }
-  85% { opacity: 1; }
-  100% { transform: rotateX(-100deg); opacity: 0; }
+  0% {
+    transform: rotateX(0);
+    opacity: 1;
+  }
+
+  85% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotateX(-100deg);
+    opacity: 0;
+  }
 }
 </style>
 </head>
+
 <body>
 <main>
   <div class="escena" id="escena">
-    <canvas id="lienzo" width="1080" height="1920"
+    <canvas
+      id="lienzo"
+      width="1080"
+      height="1920"
       role="img"
-      aria-label="Alba y Sandro. 2 de octubre de 2027. Marbella.">
-    </canvas>
-    <img class="pieza" id="inferior"
-      src="Solapa%20inferior.png" alt="">
-    <img class="pieza" id="superior"
-      src="Solapa%20superior.png" alt="">
-    <button id="abrir" aria-label="Abrir invitación" disabled></button>
+      aria-label="Alba y Sandro. 2 de octubre de 2027. Marbella."
+    ></canvas>
+
+    <img
+      class="pieza"
+      id="inferior"
+      src="Solapa%20inferior.png"
+      alt=""
+    >
+
+    <img
+      class="pieza"
+      id="superior"
+      src="Solapa%20superior.png"
+      alt=""
+    >
+
+    <button
+      id="abrir"
+      aria-label="Abrir invitación"
+      disabled
+    ></button>
   </div>
+
   <div class="controles" aria-live="polite">
     <span id="aviso">Preparando los trazos…</span>
     <button id="repetir" hidden>Volver a ver</button>
@@ -100,12 +172,18 @@ canvas, .pieza {
 </main>
 
 <script>
-const W = 540, H = 960;
+const W = 540;
+const H = 960;
+
 const escena = document.getElementById("escena");
 const abrir = document.getElementById("abrir");
 const repetir = document.getElementById("repetir");
 const aviso = document.getElementById("aviso");
-const salida = document.getElementById("lienzo").getContext("2d");
+
+const salida = document
+  .getElementById("lienzo")
+  .getContext("2d");
+
 salida.scale(2, 2);
 
 function lienzo() {
@@ -114,128 +192,194 @@ function lienzo() {
   c.height = H;
   return c;
 }
+
 function cargar(url) {
   return new Promise((resolve, reject) => {
-    const im = new Image();
-    im.onload = () => resolve(im);
-    im.onerror = () => reject(new Error(url));
-    im.src = url;
+    const imagen = new Image();
+
+    imagen.onload = () => resolve(imagen);
+    imagen.onerror = () => reject(new Error(url));
+    imagen.src = url;
   });
 }
+
 function progreso(t, inicio, duracion) {
-  return Math.max(0, Math.min(1, (t - inicio) / duracion));
+  return Math.max(
+    0,
+    Math.min(1, (t - inicio) / duracion)
+  );
 }
 
-/* Extrae líneas centrales de las letras y líneas oscuras del dibujo. */
-function preparar(imagen, texto) {
+/* Prepara el recorrido aproximado de los textos originales. */
+function prepararTexto(imagen) {
   const original = lienzo();
   const ctx = original.getContext("2d");
+
   ctx.drawImage(imagen, 0, 0, W, H);
+
   const pix = ctx.getImageData(0, 0, W, H).data;
   const bin = new Uint8Array(W * H);
   const distancia = new Float32Array(W * H);
 
   for (let i = 0; i < bin.length; i++) {
-    const j = i * 4;
-    const brillo =
-      pix[j] * .299 + pix[j + 1] * .587 + pix[j + 2] * .114;
-    bin[i] = pix[j + 3] > 100 &&
-      (texto || brillo < 125) ? 1 : 0;
+    bin[i] = pix[i * 4 + 3] > 100 ? 1 : 0;
     distancia[i] = bin[i] ? 999 : 0;
   }
 
-  /* Grosor local para revelar las letras sin sustituir la tipografía. */
+  /* Calcula el grosor de cada trazo. */
   for (let y = 1; y < H - 1; y++) {
     for (let x = 1; x < W - 1; x++) {
       const i = y * W + x;
-      if (bin[i]) distancia[i] = Math.min(
-        distancia[i],
-        distancia[i - 1] + 1,
-        distancia[i - W] + 1,
-        distancia[i - W - 1] + 1.414,
-        distancia[i - W + 1] + 1.414
-      );
+
+      if (bin[i]) {
+        distancia[i] = Math.min(
+          distancia[i],
+          distancia[i - 1] + 1,
+          distancia[i - W] + 1,
+          distancia[i - W - 1] + 1.414,
+          distancia[i - W + 1] + 1.414
+        );
+      }
     }
   }
+
   for (let y = H - 2; y > 0; y--) {
     for (let x = W - 2; x > 0; x--) {
       const i = y * W + x;
-      if (bin[i]) distancia[i] = Math.min(
-        distancia[i],
-        distancia[i + 1] + 1,
-        distancia[i + W] + 1,
-        distancia[i + W + 1] + 1.414,
-        distancia[i + W - 1] + 1.414
-      );
+
+      if (bin[i]) {
+        distancia[i] = Math.min(
+          distancia[i],
+          distancia[i + 1] + 1,
+          distancia[i + W] + 1,
+          distancia[i + W + 1] + 1.414,
+          distancia[i + W - 1] + 1.414
+        );
+      }
     }
   }
 
-  /* Adelgazamiento de los trazos. */
+  /* Obtiene las líneas centrales de las letras. */
   let cambio = true;
   let vueltas = 0;
+
   while (cambio && vueltas++ < 90) {
     cambio = false;
+
     for (let fase = 0; fase < 2; fase++) {
       const borrar = [];
+
       for (let y = 1; y < H - 1; y++) {
         for (let x = 1; x < W - 1; x++) {
           const i = y * W + x;
+
           if (!bin[i]) continue;
+
           const n = [
-            bin[i-W], bin[i-W+1], bin[i+1], bin[i+W+1],
-            bin[i+W], bin[i+W-1], bin[i-1], bin[i-W-1]
+            bin[i - W],
+            bin[i - W + 1],
+            bin[i + 1],
+            bin[i + W + 1],
+            bin[i + W],
+            bin[i + W - 1],
+            bin[i - 1],
+            bin[i - W - 1]
           ];
-          const suma = n.reduce((a,b) => a+b, 0);
+
+          const suma = n.reduce((a, b) => a + b, 0);
+
           if (suma < 2 || suma > 6) continue;
+
           let transiciones = 0;
+
           for (let k = 0; k < 8; k++) {
-            if (!n[k] && n[(k+1)%8]) transiciones++;
+            if (!n[k] && n[(k + 1) % 8]) {
+              transiciones++;
+            }
           }
+
           if (transiciones !== 1) continue;
+
           const a = fase === 0
-            ? n[0]*n[2]*n[4] : n[0]*n[2]*n[6];
+            ? n[0] * n[2] * n[4]
+            : n[0] * n[2] * n[6];
+
           const b = fase === 0
-            ? n[2]*n[4]*n[6] : n[0]*n[4]*n[6];
+            ? n[2] * n[4] * n[6]
+            : n[0] * n[4] * n[6];
+
           if (!a && !b) borrar.push(i);
         }
       }
+
       if (borrar.length) cambio = true;
-      for (const i of borrar) bin[i] = 0;
+
+      for (const i of borrar) {
+        bin[i] = 0;
+      }
     }
   }
 
-  const offsets = [-W, -W+1, 1, W+1, W, W-1, -1, -W-1];
+  const offsets = [
+    -W, -W + 1, 1, W + 1,
+    W, W - 1, -1, -W - 1
+  ];
+
   const visitado = new Uint8Array(W * H);
   const caminos = [];
 
   function vecinos(i) {
     const x = i % W;
-    if (x < 1 || x >= W-1 || i < W || i >= W*(H-1)) return [];
-    return offsets.map(d => i+d).filter(j => bin[j] && !visitado[j]);
+
+    if (
+      x < 1 ||
+      x >= W - 1 ||
+      i < W ||
+      i >= W * (H - 1)
+    ) {
+      return [];
+    }
+
+    return offsets
+      .map(d => i + d)
+      .filter(j => bin[j] && !visitado[j]);
   }
 
   function recorrer(inicio) {
     let actual = inicio;
     const camino = [];
+
     while (actual !== undefined) {
       visitado[actual] = 1;
+
       camino.push({
         x: actual % W,
         y: Math.floor(actual / W),
         r: distancia[actual]
       });
-      const siguientes = vecinos(actual);
-      actual = siguientes[0];
+
+      actual = vecinos(actual)[0];
     }
-    if (camino.length) caminos.push(camino);
+
+    if (camino.length) {
+      caminos.push(camino);
+    }
   }
 
-  /* Empieza por los extremos y después recoge los bucles. */
-  for (let i = W+1; i < W*(H-1)-1; i++) {
-    if (bin[i] && !visitado[i] && vecinos(i).length <= 1) recorrer(i);
+  for (let i = W + 1; i < W * (H - 1) - 1; i++) {
+    if (
+      bin[i] &&
+      !visitado[i] &&
+      vecinos(i).length <= 1
+    ) {
+      recorrer(i);
+    }
   }
-  for (let i = W+1; i < W*(H-1)-1; i++) {
-    if (bin[i] && !visitado[i]) recorrer(i);
+
+  for (let i = W + 1; i < W * (H - 1) - 1; i++) {
+    if (bin[i] && !visitado[i]) {
+      recorrer(i);
+    }
   }
 
   function zona(y) {
@@ -244,76 +388,88 @@ function preparar(imagen, texto) {
     if (y < 310) return 2;
     return 3;
   }
-  caminos.sort((a,b) => texto
-    ? zona(a[0].y)-zona(b[0].y) || a[0].x-b[0].x
-    : a[0].y-b[0].y || a[0].x-b[0].x
+
+  caminos.sort((a, b) =>
+    zona(a[0].y) - zona(b[0].y) ||
+    a[0].x - b[0].x
   );
 
   return {
     original,
     caminos,
-    total: caminos.reduce((n,p) => n+p.length, 0),
+    total: caminos.reduce((n, p) => n + p.length, 0),
     mascara: lienzo(),
     capa: lienzo()
   };
 }
 
-function dibujarTrazos(datos, p, texto) {
+function dibujarTexto(datos, p) {
+  if (p >= 1) {
+    return datos.original;
+  }
+
   const m = datos.mascara.getContext("2d");
+
   m.clearRect(0, 0, W, H);
   m.fillStyle = "#fff";
   m.strokeStyle = "#fff";
   m.lineCap = "round";
   m.lineJoin = "round";
+
   let restantes = Math.floor(datos.total * p);
 
   for (const camino of datos.caminos) {
     if (restantes <= 0) break;
+
     const cantidad = Math.min(restantes, camino.length);
+
     for (let k = 0; k < cantidad; k++) {
       const a = camino[k];
-      const b = camino[Math.max(0, k-1)];
-      const radio = texto ? Math.max(1, a.r + 1.3) : .8;
+      const b = camino[Math.max(0, k - 1)];
+      const radio = Math.max(1, a.r + 1.3);
+
       m.lineWidth = radio * 2;
+
       m.beginPath();
       m.moveTo(b.x, b.y);
       m.lineTo(a.x, a.y);
       m.stroke();
+
       if (k === 0) {
         m.beginPath();
-        m.arc(a.x, a.y, radio, 0, Math.PI*2);
+        m.arc(a.x, a.y, radio, 0, Math.PI * 2);
         m.fill();
       }
     }
+
     restantes -= cantidad;
   }
 
   const c = datos.capa.getContext("2d");
+
   c.clearRect(0, 0, W, H);
   c.globalCompositeOperation = "source-over";
-  if (texto) {
-    c.drawImage(datos.original, 0, 0);
-    if (p < 1) {
-      c.globalCompositeOperation = "destination-in";
-      c.drawImage(datos.mascara, 0, 0);
-    }
-  } else {
-    c.fillStyle = "#776044";
-    c.fillRect(0, 0, W, H);
-    c.globalCompositeOperation = "destination-in";
-    c.drawImage(datos.mascara, 0, 0);
-  }
+  c.drawImage(datos.original, 0, 0);
+
+  c.globalCompositeOperation = "destination-in";
+  c.drawImage(datos.mascara, 0, 0);
+
   c.globalCompositeOperation = "source-over";
+
   return datos.capa;
 }
 
 const pintura = lienzo();
 const capaColor = lienzo();
 
-/* El color entra por recorridos de pincel, sin filtro blanco y negro. */
-function acuarela(original, p) {
-  if (p >= 1) return original;
+/* Revela la iglesia directamente a color mediante pinceladas. */
+function pintarIglesia(original, p) {
+  if (p >= 1) {
+    return original;
+  }
+
   const m = pintura.getContext("2d");
+
   m.clearRect(0, 0, W, H);
   m.strokeStyle = "#fff";
   m.lineWidth = 46;
@@ -321,67 +477,112 @@ function acuarela(original, p) {
 
   const filas = 25;
   const avance = p * filas;
+
   for (let fila = 0; fila < Math.ceil(avance); fila++) {
-    const f = Math.min(1, avance-fila);
+    const f = Math.min(1, avance - fila);
+
     if (f <= 0) continue;
+
     m.beginPath();
-    for (let paso = 0; paso <= Math.ceil(100*f); paso++) {
-      const q = Math.min(f, paso/100);
-      const x = fila % 2 ? W+25-q*(W+50) : -25+q*(W+50);
-      const y = 410 + fila*24 + Math.sin(q*14+fila)*9;
-      if (!paso) m.moveTo(x,y); else m.lineTo(x,y);
+
+    for (
+      let paso = 0;
+      paso <= Math.ceil(100 * f);
+      paso++
+    ) {
+      const q = Math.min(f, paso / 100);
+
+      const x = fila % 2
+        ? W + 25 - q * (W + 50)
+        : -25 + q * (W + 50);
+
+      const y =
+        410 +
+        fila * 24 +
+        Math.sin(q * 14 + fila) * 9;
+
+      if (!paso) {
+        m.moveTo(x, y);
+      } else {
+        m.lineTo(x, y);
+      }
     }
+
     m.stroke();
   }
 
   const c = capaColor.getContext("2d");
+
   c.clearRect(0, 0, W, H);
   c.globalCompositeOperation = "source-over";
   c.drawImage(original, 0, 0);
+
   c.globalCompositeOperation = "destination-in";
   c.drawImage(pintura, 0, 0);
+
   c.globalCompositeOperation = "source-over";
+
   return capaColor;
 }
 
-let letras, iglesia, frame;
+let letras;
+let iglesia;
+let frame;
+
 function fondo() {
-  salida.clearRect(0,0,W,H);
+  salida.clearRect(0, 0, W, H);
   salida.fillStyle = "#f6f4ee";
-  salida.fillRect(0,0,W,H);
+  salida.fillRect(0, 0, W, H);
 }
+
 function reproducir() {
   cancelAnimationFrame(frame);
+  fondo();
+
   escena.classList.remove("animando");
   void escena.offsetWidth;
   escena.classList.add("animando");
+
   abrir.hidden = true;
   aviso.hidden = true;
   repetir.hidden = true;
+
   const inicio = performance.now();
 
   function pintar(ahora) {
-    const t = (ahora-inicio)/1000;
+    const t = (ahora - inicio) / 1000;
+
     fondo();
-    const escritura = progreso(t, 1.8, 6.5);
-    const dibujo = progreso(t, 2.5, 6);
-    const color = progreso(t, 7.5, 5);
 
-    if (dibujo > 0 && color < 1) {
-      salida.globalAlpha = 1-color;
-      salida.drawImage(dibujarTrazos(iglesia,dibujo,false),0,0);
-      salida.globalAlpha = 1;
-    }
+    /* Primero se abre el sobre y después se escribe el texto. */
+    const escritura = progreso(t, 3.1, 6.5);
+
+    /* La iglesia empieza cuando el texto ya está completo. */
+    const color = progreso(t, 9.9, 5.5);
+
     if (color > 0) {
-      salida.drawImage(acuarela(iglesia.original,color),0,0);
-    }
-    if (escritura > 0) {
-      salida.drawImage(dibujarTrazos(letras,escritura,true),0,0);
+      salida.drawImage(
+        pintarIglesia(iglesia, color),
+        0,
+        0
+      );
     }
 
-    if (t < 13) frame = requestAnimationFrame(pintar);
-    else repetir.hidden = false;
+    if (escritura > 0) {
+      salida.drawImage(
+        dibujarTexto(letras, escritura),
+        0,
+        0
+      );
+    }
+
+    if (t < 16) {
+      frame = requestAnimationFrame(pintar);
+    } else {
+      repetir.hidden = false;
+    }
   }
+
   frame = requestAnimationFrame(pintar);
 }
 
@@ -393,21 +594,31 @@ async function iniciar() {
       document.getElementById("superior").decode(),
       document.getElementById("inferior").decode()
     ]);
-    /* Deja que el navegador muestre el aviso antes de analizar. */
+
     await new Promise(resolve => setTimeout(resolve, 80));
-    letras = preparar(texto,true);
-    iglesia = preparar(edificio,false);
+
+    letras = prepararTexto(texto);
+
+    iglesia = lienzo();
+    iglesia
+      .getContext("2d")
+      .drawImage(edificio, 0, 0, W, H);
+
     fondo();
+
     aviso.textContent = "Toca el sello para abrir";
     abrir.disabled = false;
   } catch (error) {
     aviso.textContent =
       "No se pudo preparar la invitación. Comprueba los nombres: AYS.png, iglesia.png y las dos solapas.";
+
     console.error(error);
   }
 }
+
 abrir.addEventListener("click", reproducir);
 repetir.addEventListener("click", reproducir);
+
 iniciar();
 </script>
 </body>
