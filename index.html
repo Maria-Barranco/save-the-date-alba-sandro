@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Save the date · Alba y Sandro</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    background: #ede9df;
+    display: grid;
+    place-items: center;
+    font-family: Georgia, serif;
+  }
+
+  main {
+    width: min(100vw, 56.25svh);
+  }
+
+  .escena {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    background: #f6f4ee;
+    perspective: 1600px;
+    isolation: isolate;
+  }
+
+  .pieza {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .invitacion {
+    z-index: 1;
+    opacity: 0;
+    filter: grayscale(1);
+    clip-path: inset(100% 0 0 0);
+  }
+
+  .inferior {
+    z-index: 2;
+    transform-origin: center bottom;
+  }
+
+  .superior {
+    z-index: 3;
+    transform-origin: center top;
+  }
+
+  .abrir {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: transparent;
+    cursor: pointer;
+  }
+
+  .abrir:focus-visible {
+    outline: 3px solid #80632a;
+    outline-offset: -5px;
+  }
+
+  .controles {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    text-align: center;
+    color: #575b3c;
+    font-size: 14px;
+  }
+
+  #repetir {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid #999b85;
+    padding: 7px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+
+  [hidden] { display: none !important; }
+
+  .animando .superior {
+    animation: abrir-arriba 2.6s ease-in-out forwards;
+  }
+
+  .animando .inferior {
+    animation: abrir-abajo 2.6s 2.3s ease-in-out forwards;
+  }
+
+  .animando .invitacion {
+    animation:
+      revelar 5s 3.2s ease-in-out forwards,
+      colorear 4s 6s ease-in-out forwards;
+  }
+
+  @keyframes abrir-arriba {
+    0% {
+      transform: rotateX(0deg);
+      opacity: 1;
+    }
+    85% { opacity: 1; }
+    100% {
+      transform: rotateX(100deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes abrir-abajo {
+    0% {
+      transform: rotateX(0deg);
+      opacity: 1;
+    }
+    85% { opacity: 1; }
+    100% {
+      transform: rotateX(-100deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes revelar {
+    0% {
+      opacity: 0;
+      clip-path: inset(100% 0 0 0);
+    }
+    15% { opacity: 1; }
+    100% {
+      opacity: 1;
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  @keyframes colorear {
+    from { filter: grayscale(1); }
+    to { filter: grayscale(0); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="escena" id="escena">
+    <img
+      class="pieza invitacion"
+      src="Invitacion.jpg"
+      alt="Save the date de Alba y Sandro. 2 de octubre de 2027, Marbella."
+    >
+    <img
+      class="pieza inferior"
+      src="Solapa%20inferior.png"
+      alt=""
+    >
+    <img
+      class="pieza superior"
+      src="Solapa%20superior.png"
+      alt=""
+    >
+    <button class="abrir" id="abrir"
+      aria-label="Abrir el sobre" disabled>
+      Abrir el sobre
+    </button>
+  </div>
+
+  <div class="controles" aria-live="polite">
+    <span id="aviso">Cargando invitación…</span>
+    <button id="repetir" hidden>Volver a ver</button>
+  </div>
+</main>
+
+<script>
+  const escena = document.getElementById("escena");
+  const abrir = document.getElementById("abrir");
+  const repetir = document.getElementById("repetir");
+  const aviso = document.getElementById("aviso");
+  let temporizador;
+
+  async function preparar() {
+    try {
+      await Promise.all(
+        [...document.images].map(imagen => imagen.decode())
+      );
+      abrir.disabled = false;
+      aviso.textContent = "Toca el sello para abrir";
+    } catch {
+      aviso.textContent =
+        "No se ha podido cargar una imagen. Revisa los nombres de los archivos.";
+    }
+  }
+
+  function reproducir() {
+    clearTimeout(temporizador);
+    escena.classList.remove("animando");
+    void escena.offsetWidth;
+    escena.classList.add("animando");
+    abrir.hidden = true;
+    aviso.hidden = true;
+    repetir.hidden = true;
+
+    temporizador = setTimeout(() => {
+      repetir.hidden = false;
+    }, 10500);
+  }
+
+  abrir.addEventListener("click", reproducir);
+  repetir.addEventListener("click", reproducir);
+  preparar();
+</script>
+</body>
+</html>
